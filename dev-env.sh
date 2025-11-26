@@ -5,12 +5,22 @@
 
 set -e
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+# Check if output is to a terminal and enable colors accordingly
+if [ -t 1 ]; then
+    # Colors for output (terminal detected)
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'
+    NC='\033[0m' # No Color
+else
+    # No colors (output redirected/piped)
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    NC=''
+fi
 
 # Configuration
 PROJECT_NAME="Foliogram"
@@ -275,61 +285,60 @@ clean() {
 
 # Show help
 help() {
-    cat << EOF
-${GREEN}$PROJECT_NAME Development Environment Manager${NC}
-
-${YELLOW}Usage:${NC}
-    ./dev-env.sh <command>
-
-${YELLOW}Commands:${NC}
-    ${GREEN}start${NC}              Start all services (backend + MySQL + phpMyAdmin)
-    ${GREEN}start-backend${NC}      Start backend service only
-    ${GREEN}start-mysql${NC}        Start MySQL service only
-    ${GREEN}start-phpmyadmin${NC}   Start phpMyAdmin service only
+    printf "${GREEN}Foliogram Development Environment Manager${NC}\n\n"
+    printf "${YELLOW}Usage:${NC}\n"
+    printf "    ./dev-env.sh <command>\n\n"
     
-    ${GREEN}stop${NC}               Stop all services
-    ${GREEN}stop-backend${NC}       Stop backend service only
-    ${GREEN}stop-mysql${NC}         Stop MySQL service only
-    ${GREEN}stop-phpmyadmin${NC}    Stop phpMyAdmin service only
+    printf "${YELLOW}Commands:${NC}\n"
+    printf "    ${GREEN}start${NC}              Start all services (backend + MySQL + phpMyAdmin)\n"
+    printf "    ${GREEN}start-backend${NC}      Start backend service only\n"
+    printf "    ${GREEN}start-mysql${NC}        Start MySQL service only\n"
+    printf "    ${GREEN}start-phpmyadmin${NC}   Start phpMyAdmin service only\n"
+    printf "\n"
+    printf "    ${GREEN}stop${NC}               Stop all services\n"
+    printf "    ${GREEN}stop-backend${NC}       Stop backend service only\n"
+    printf "    ${GREEN}stop-mysql${NC}         Stop MySQL service only\n"
+    printf "    ${GREEN}stop-phpmyadmin${NC}    Stop phpMyAdmin service only\n"
+    printf "\n"
+    printf "    ${GREEN}restart${NC}            Restart all services\n"
+    printf "    ${GREEN}restart-backend${NC}    Restart backend service only\n"
+    printf "    ${GREEN}restart-mysql${NC}      Restart MySQL service only\n"
+    printf "    ${GREEN}restart-phpmyadmin${NC} Restart phpMyAdmin service only\n"
+    printf "\n"
+    printf "    ${GREEN}down${NC}               Stop and remove containers and networks\n"
+    printf "    ${GREEN}destroy${NC}            Stop and remove containers, networks, and volumes (deletes data!)\n"
+    printf "    ${GREEN}logs${NC} [service]     View logs (all services or specific service)\n"
+    printf "    ${GREEN}status${NC}             Show status of all services\n"
+    printf "    ${GREEN}rebuild${NC}            Rebuild and restart services\n"
+    printf "\n"
+    printf "    ${BLUE}backend${NC} [cmd]   Execute command in backend container (default: shell)\n"
+    printf "    ${BLUE}mysql${NC}           Open MySQL client\n"
+    printf "    ${BLUE}init-db${NC} [force] Initialize/reinitialize database with schema\n"
+    printf "    ${BLUE}db-tables${NC}       Show all database tables and row counts\n"
+    printf "    ${BLUE}backup${NC}          Backup database to ./backups/\n"
+    printf "    ${BLUE}restore${NC} <file>  Restore database from backup file\n"
+    printf "    ${BLUE}db-info${NC}         Show database connection information\n"
+    printf "    ${BLUE}migrate${NC}         Run database migrations\n"
+    printf "\n"
+    printf "    ${YELLOW}clean${NC}           Clean up Docker resources\n"
+    printf "    ${YELLOW}help${NC}            Show this help message\n"
+    printf "\n"
     
-    ${GREEN}restart${NC}            Restart all services
-    ${GREEN}restart-backend${NC}    Restart backend service only
-    ${GREEN}restart-mysql${NC}      Restart MySQL service only
-    ${GREEN}restart-phpmyadmin${NC} Restart phpMyAdmin service only
+    printf "${YELLOW}Examples:${NC}\n"
+    printf "    ./dev-env.sh start                      # Start all services\n"
+    printf "    ./dev-env.sh start-backend              # Start only backend\n"
+    printf "    ./dev-env.sh restart-mysql              # Restart only MySQL\n"
+    printf "    ./dev-env.sh logs backend               # View backend logs\n"
+    printf "    ./dev-env.sh backend ls -la             # Run command in backend\n"
+    printf "    ./dev-env.sh backup                     # Backup database\n"
+    printf "    ./dev-env.sh init-db                    # Initialize database\n"
+    printf "    ./dev-env.sh restore ./backups/backup.sql\n"
+    printf "\n"
     
-    ${GREEN}down${NC}               Stop and remove containers and networks
-    ${GREEN}destroy${NC}            Stop and remove containers, networks, and volumes (deletes data!)
-    ${GREEN}logs${NC} [service]     View logs (all services or specific service)
-    ${GREEN}status${NC}             Show status of all services
-    ${GREEN}rebuild${NC}            Rebuild and restart services
-    
-    ${BLUE}backend${NC} [cmd]   Execute command in backend container (default: shell)
-    ${BLUE}mysql${NC}           Open MySQL client
-    ${BLUE}init-db${NC} [force] Initialize/reinitialize database with schema
-    ${BLUE}db-tables${NC}       Show all database tables and row counts
-    ${BLUE}backup${NC}          Backup database to ./backups/
-    ${BLUE}restore${NC} <file>  Restore database from backup file
-    ${BLUE}db-info${NC}         Show database connection information
-    ${BLUE}migrate${NC}         Run database migrations
-    
-    ${YELLOW}clean${NC}           Clean up Docker resources
-    ${YELLOW}help${NC}            Show this help message
-
-${YELLOW}Examples:${NC}
-    ./dev-env.sh start                      # Start all services
-    ./dev-env.sh start-backend              # Start only backend
-    ./dev-env.sh restart-mysql              # Restart only MySQL
-    ./dev-env.sh logs backend               # View backend logs
-    ./dev-env.sh backend ls -la             # Run command in backend
-    ./dev-env.sh backup                     # Backup database
-    ./dev-env.sh init-db                    # Initialize database
-    ./dev-env.sh restore ./backups/backup.sql
-
-${YELLOW}Service URLs:${NC}
-    Backend API:  http://localhost:8080
-    phpMyAdmin:   http://localhost:8081
-
-EOF
+    printf "${YELLOW}Service URLs:${NC}\n"
+    printf "    Backend API:  http://localhost:8000\n"
+    printf "    phpMyAdmin:   http://localhost:8081\n"
+    printf "\n"
 }
 
 # Main script logic
