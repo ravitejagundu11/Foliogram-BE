@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: foliogram_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-foliogram_db}
+      MYSQL_USER: ${DB_USER:-foliogram_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-foliogram_pass}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./assets/schema_mysql.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    networks:
+      - foliogram_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: foliogram_backend
+    restart: always
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-foliogram_db}
+      DB_USER: ${DB_USER:-foliogram_user}
+      DB_PASSWORD: ${DB_PASSWORD:-foliogram_pass}
+      APP_PORT: ${APP_PORT:-8080}
+      APP_ENV: ${APP_ENV:-development}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-here}
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./conf:/app/conf
+    networks:
+      - foliogram_network
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: foliogram_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USER:-foliogram_user}
+      PMA_PASSWORD: ${DB_PASSWORD:-foliogram_pass}
+    ports:
+      - "8081:80"
+    depends_on:
+      - mysql
+    networks:
+      - foliogram_network
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  foliogram_network:
+    driver: bridge

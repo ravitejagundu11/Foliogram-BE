@@ -32,3 +32,17 @@ go.work.sum
 .vscode/
 Foliogram-BE
 vendor/
+
+# Docker volumes and data
+mysql_data/
+uploads/*
+!uploads/.gitkeep
+
+# Backups
+backups/
+
+# Logs
+*.log
+logs/
+
+docs/
