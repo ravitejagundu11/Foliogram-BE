@@ -1,0 +1,59 @@
+# Foliogram Backend - Dockerignore
+# Ignore files and directories that shouldn't be copied to Docker image
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Uploads (use volume instead)
+uploads/*
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Tests
+*_test.go
+tests/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
