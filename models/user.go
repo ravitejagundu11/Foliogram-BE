@@ -11,17 +11,17 @@ import (
 
 // User represents the users table
 type User struct {
-	ID             string    `gorm:"type:char(36);primaryKey" json:"id"`
+	ID             string    `gorm:"type:char(36);primaryKey" json:"-"`
 	FullName       string    `gorm:"type:varchar(255);not null" json:"full_name" valid:"required~Full name is required,stringlength(2|255)~Full name must be between 2 and 255 characters"`
 	Email          string    `gorm:"type:varchar(255);uniqueIndex;not null" json:"email" valid:"required~Email is required,email~Invalid email format"`
 	PasswordHash   string    `gorm:"type:varchar(255);not null" json:"-"`
 	Password       string    `gorm:"-" json:"password,omitempty" valid:"required~Password is required,stringlength(8|100)~Password must be at least 8 characters"`
-	Mobile         string    `gorm:"type:varchar(20)" json:"mobile" valid:"optional,matches(^[+]?[0-9]{10\\,15}$)~Invalid mobile number format"`
-	Location       string    `gorm:"type:varchar(255)" json:"location"`
+	Mobile         string    `gorm:"type:varchar(20)" json:"-" valid:"optional,matches(^[+]?[0-9]{10\\,15}$)~Invalid mobile number format"`
+	Location       string    `gorm:"type:varchar(255)" json:"-"`
 	ProfilePicture string    `gorm:"type:text" json:"profile_picture"`
 	Role           string    `gorm:"type:varchar(20);not null;default:'user'" json:"role"`
-	CreatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	CreatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 // TableName specifies the table name for User model

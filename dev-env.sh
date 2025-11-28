@@ -290,19 +290,22 @@ help() {
     printf "    ./dev-env.sh <command>\n\n"
     
     printf "${YELLOW}Commands:${NC}\n"
-    printf "    ${GREEN}start${NC}              Start all services (backend + MySQL + phpMyAdmin)\n"
+    printf "    ${GREEN}start${NC}              Start all services (backend + MySQL + Redis + phpMyAdmin)\n"
     printf "    ${GREEN}start-backend${NC}      Start backend service only\n"
     printf "    ${GREEN}start-mysql${NC}        Start MySQL service only\n"
+    printf "    ${GREEN}start-redis${NC}        Start Redis service only\n"
     printf "    ${GREEN}start-phpmyadmin${NC}   Start phpMyAdmin service only\n"
     printf "\n"
     printf "    ${GREEN}stop${NC}               Stop all services\n"
     printf "    ${GREEN}stop-backend${NC}       Stop backend service only\n"
     printf "    ${GREEN}stop-mysql${NC}         Stop MySQL service only\n"
+    printf "    ${GREEN}stop-redis${NC}         Stop Redis service only\n"
     printf "    ${GREEN}stop-phpmyadmin${NC}    Stop phpMyAdmin service only\n"
     printf "\n"
     printf "    ${GREEN}restart${NC}            Restart all services\n"
     printf "    ${GREEN}restart-backend${NC}    Restart backend service only\n"
     printf "    ${GREEN}restart-mysql${NC}      Restart MySQL service only\n"
+    printf "    ${GREEN}restart-redis${NC}      Restart Redis service only\n"
     printf "    ${GREEN}restart-phpmyadmin${NC} Restart phpMyAdmin service only\n"
     printf "\n"
     printf "    ${GREEN}down${NC}               Stop and remove containers and networks\n"
@@ -352,6 +355,9 @@ case "$1" in
     start-mysql)
         start_service "$@" mysql
         ;;
+    start-redis)
+        start_service "$@" redis
+        ;;
     start-phpmyadmin)
         start_service "$@" phpmyadmin
         ;;
@@ -364,6 +370,9 @@ case "$1" in
     stop-mysql)
         stop_service "$@" mysql
         ;;
+    stop-redis)
+        stop_service "$@" redis
+        ;;
     stop-phpmyadmin)
         stop_service "$@" phpmyadmin
         ;;
@@ -375,6 +384,9 @@ case "$1" in
         ;;
     restart-mysql)
         restart_service "$@" mysql
+        ;;
+    restart-redis)
+        restart_service "$@" redis
         ;;
     restart-phpmyadmin)
         restart_service "$@" phpmyadmin
