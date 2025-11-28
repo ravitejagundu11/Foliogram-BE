@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -80,9 +81,7 @@ func (u *User) Validate() error {
 	return nil
 }
 
-// generateUUID generates a UUID (simple implementation)
+// generateUUID generates a UUID v4
 func generateUUID() string {
-	// For production, use a proper UUID library like github.com/google/uuid
-	// This is a placeholder that will be replaced when UUID() is called in DB
-	return ""
+	return uuid.New().String()
 }
