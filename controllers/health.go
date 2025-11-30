@@ -10,10 +10,9 @@ type HealthController struct {
 
 // Get handles GET requests to /health
 func (c *HealthController) Get() {
-	c.Data["json"] = map[string]interface{}{
+	SendSuccess(&c.Controller, map[string]interface{}{
 		"status":  "healthy",
 		"service": "foliogram-backend",
 		"message": "Service is running",
-	}
-	c.ServeJSON()
+	})
 }
