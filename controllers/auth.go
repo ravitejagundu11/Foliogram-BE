@@ -115,3 +115,130 @@ func (c *AuthController) Register() {
 		"token": token,
 	})
 }
+
+// LoginRequest represents the login request body
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// Login handles POST /api/login
+func (c *AuthController) Login() {
+	var req LoginRequest
+
+	// Read and parse JSON body
+	if err := json.Unmarshal(c.Ctx.Input.RequestBody, &req); err != nil {
+		SendBadRequest(&c.Controller, map[string]interface{}{
+			"message": "Invalid JSON format",
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	// Sanitize input
+	req.Email = utils.SanitizeEmail(req.Email)
+
+	// Validate required fields
+	validationErrors := make(map[string]interface{})
+
+	if req.Email == "" {
+		validationErrors["email"] = "Email is required"
+	} else if !utils.ValidateEmail(req.Email) {
+		validationErrors["email"] = "Invalid email format"
+	}
+
+	if req.Password == "" {
+		validationErrors["password"] = "Password is required"
+	}
+
+	// If there are validation errors, return them
+	if len(validationErrors) > 0 {
+		SendValidationError(&c.Controller, validationErrors)
+		return
+	}
+
+	// Find user by email
+	var user models.User
+	result := models.DB.Where("email = ?", req.Email).First(&user)
+	if result.Error != nil {
+		SendUnauthorized(&c.Controller, "Invalid email or password")
+		return
+	}
+
+	// Compare password
+	if err := user.ComparePassword(req.Password); err != nil {
+		SendUnauthorized(&c.Controller, "Invalid email or password")
+		return
+	}
+
+	// Generate JWT token
+	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role)
+	if err != nil {
+		SendInternalServerError(&c.Controller, "Failed to generate authentication token")
+		return
+	}
+
+	// Validate token to get expiry time
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		SendInternalServerError(&c.Controller, "Failed to validate token")
+		return
+	}
+
+	// Store user session in Redis
+	if err := utils.StoreUserSession(user.ID, claims.ExpiresAt.Time); err != nil {
+		// Log error but don't fail the login
+		fmt.Printf("Warning: Failed to store user session: %v\n", err)
+	}
+
+	// Sanitize user data before returning
+	user.Sanitize()
+
+	// Return success response
+	SendSuccess(&c.Controller, map[string]interface{}{
+		"user":  user,
+		"token": token,
+	})
+}
+
+// LogoutRequest represents the logout request body
+type LogoutRequest struct {
+	Token string `json:"token"`
+}
+
+// Logout handles POST /api/logout
+func (c *AuthController) Logout() {
+	// Get token from Authorization header
+	authHeader := c.Ctx.Input.Header("Authorization")
+	if authHeader == "" {
+		SendUnauthorized(&c.Controller, "Authorization header required")
+		return
+	}
+
+	// Extract token (format: "Bearer <token>")
+	var token string
+	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
+		token = authHeader[7:]
+	} else {
+		SendUnauthorized(&c.Controller, "Invalid authorization header format")
+		return
+	}
+
+	// Validate token
+	claims, err := utils.ValidateJWT(token)
+	if err != nil {
+		SendUnauthorized(&c.Controller, "Invalid or expired token")
+		return
+	}
+
+	// Invalidate user session
+	if err := utils.InvalidateUserSession(claims.UserID); err != nil {
+		SendInternalServerError(&c.Controller, "Failed to logout")
+		return
+	}
+
+	// Return success response
+	SendSuccess(&c.Controller, map[string]interface{}{
+		"message": "Logged out successfully",
+	})
+}
