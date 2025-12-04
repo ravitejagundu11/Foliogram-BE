@@ -21,25 +21,54 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
+-- TEMPLATES TABLE
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS templates (
+    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    category VARCHAR(100),
+    preview_url VARCHAR(500),
+    thumbnail_url VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
+    is_premium BOOLEAN DEFAULT FALSE,
+    features JSON,
+    default_config JSON,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
+    INDEX idx_templates_category (category),
+    INDEX idx_templates_is_active (is_active),
+    INDEX idx_templates_deleted_at (deleted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================================
 -- PORTFOLIOS TABLE
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS portfolios (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     user_id CHAR(36) NOT NULL,
-    headline VARCHAR(255),
+    template_id CHAR(36) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
-    template_id INT,
-    primary_color VARCHAR(7),
-    secondary_color VARCHAR(7),
-    heading_font VARCHAR(100),
-    body_font VARCHAR(100),
-    layout_style ENUM('minimal', 'classic', 'modern') DEFAULT 'minimal',
     is_published BOOLEAN DEFAULT FALSE,
+    custom_domain VARCHAR(255),
+    config JSON,
+    meta_title VARCHAR(255),
+    meta_description TEXT,
+    meta_keywords VARCHAR(500),
+    view_count INT DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     INDEX idx_portfolios_user_id (user_id),
+    INDEX idx_portfolios_template_id (template_id),
+    INDEX idx_portfolios_slug (slug),
     INDEX idx_portfolios_is_published (is_published),
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    INDEX idx_portfolios_deleted_at (deleted_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (template_id) REFERENCES templates(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================================
@@ -48,12 +77,25 @@ CREATE TABLE IF NOT EXISTS portfolios (
 CREATE TABLE IF NOT EXISTS projects (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     portfolio_id CHAR(36) NOT NULL,
-    name VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description TEXT,
+    image_url VARCHAR(500),
+    gallery_urls JSON,
+    demo_url VARCHAR(500),
+    github_url VARCHAR(500),
+    tags JSON,
     technologies JSON,
-    media_urls JSON,
+    start_date DATE,
+    end_date DATE,
+    is_featured BOOLEAN DEFAULT FALSE,
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     INDEX idx_projects_portfolio_id (portfolio_id),
+    INDEX idx_projects_is_featured (is_featured),
+    INDEX idx_projects_sort_order (sort_order),
+    INDEX idx_projects_deleted_at (deleted_at),
     FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -63,9 +105,19 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE TABLE IF NOT EXISTS skills (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     portfolio_id CHAR(36) NOT NULL,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(100),
+    level VARCHAR(50),
+    percentage INT,
+    icon_url VARCHAR(500),
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     INDEX idx_skills_portfolio_id (portfolio_id),
+    INDEX idx_skills_category (category),
+    INDEX idx_skills_sort_order (sort_order),
+    INDEX idx_skills_deleted_at (deleted_at),
     FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -75,11 +127,22 @@ CREATE TABLE IF NOT EXISTS skills (
 CREATE TABLE IF NOT EXISTS testimonials (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     portfolio_id CHAR(36) NOT NULL,
-    text TEXT NOT NULL,
-    author_name VARCHAR(255) NOT NULL,
-    author_role VARCHAR(255),
+    name VARCHAR(255) NOT NULL,
+    position VARCHAR(255),
+    company VARCHAR(255),
+    content TEXT NOT NULL,
+    rating INT,
+    avatar_url VARCHAR(500),
+    linkedin_url VARCHAR(500),
+    is_visible BOOLEAN DEFAULT TRUE,
+    sort_order INT DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL,
     INDEX idx_testimonials_portfolio_id (portfolio_id),
+    INDEX idx_testimonials_is_visible (is_visible),
+    INDEX idx_testimonials_sort_order (sort_order),
+    INDEX idx_testimonials_deleted_at (deleted_at),
     FOREIGN KEY (portfolio_id) REFERENCES portfolios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

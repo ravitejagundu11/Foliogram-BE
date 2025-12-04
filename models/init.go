@@ -28,7 +28,8 @@ func InitDB() error {
 	// Open database connection
 	var err error
 	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Info),
+		Logger:                                   logger.Default.LogMode(logger.Info),
+		DisableForeignKeyConstraintWhenMigrating: true,
 	})
 
 	if err != nil {
@@ -46,6 +47,24 @@ func InitDB() error {
 	// Set connection pool settings
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetMaxOpenConns(100)
+
+	// Auto-migrate database schema
+	log.Println("Running auto-migration...")
+	err = DB.AutoMigrate(
+		&User{},
+		&Template{},
+		&Portfolio{},
+		&Project{},
+		&Skill{},
+		&Testimonial{},
+		&AnalyticsView{},
+	)
+
+	if err != nil {
+		return fmt.Errorf("failed to auto-migrate database: %v", err)
+	}
+
+	log.Println("Database auto-migration completed successfully")
 
 	return nil
 }

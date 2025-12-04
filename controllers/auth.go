@@ -79,7 +79,9 @@ func (c *AuthController) Register() {
 	var existingUser models.User
 	result := models.DB.Where("email = ?", req.Email).First(&existingUser)
 	if result.RowsAffected > 0 {
-		SendConflict(&c.Controller, "Email already registered")
+		SendConflict(&c.Controller, map[string]interface{}{
+			"message": "Email already registered",
+		})
 		return
 	}
 
@@ -95,14 +97,20 @@ func (c *AuthController) Register() {
 
 	// Save user to database
 	if err := models.DB.Create(&user).Error; err != nil {
-		SendInternalServerError(&c.Controller, "Failed to create user account")
+		SendInternalError(&c.Controller, map[string]interface{}{
+			"message": "Failed to create user account",
+			"error":   err.Error(),
+		})
 		return
 	}
 
 	// Generate JWT token
 	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role)
 	if err != nil {
-		SendInternalServerError(&c.Controller, "Failed to generate authentication token")
+		SendInternalError(&c.Controller, map[string]interface{}{
+			"message": "Failed to generate authentication token",
+			"error":   err.Error(),
+		})
 		return
 	}
 
@@ -161,27 +169,37 @@ func (c *AuthController) Login() {
 	var user models.User
 	result := models.DB.Where("email = ?", req.Email).First(&user)
 	if result.Error != nil {
-		SendUnauthorized(&c.Controller, "Invalid email or password")
+		SendUnauthorized(&c.Controller, map[string]interface{}{
+			"message": "Invalid email or password",
+		})
 		return
 	}
 
 	// Compare password
 	if err := user.ComparePassword(req.Password); err != nil {
-		SendUnauthorized(&c.Controller, "Invalid email or password")
+		SendUnauthorized(&c.Controller, map[string]interface{}{
+			"message": "Invalid email or password",
+		})
 		return
 	}
 
 	// Generate JWT token
 	token, err := utils.GenerateJWT(user.ID, user.Email, user.Role)
 	if err != nil {
-		SendInternalServerError(&c.Controller, "Failed to generate authentication token")
+		SendInternalError(&c.Controller, map[string]interface{}{
+			"message": "Failed to generate authentication token",
+			"error":   err.Error(),
+		})
 		return
 	}
 
 	// Validate token to get expiry time
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
-		SendInternalServerError(&c.Controller, "Failed to validate token")
+		SendInternalError(&c.Controller, map[string]interface{}{
+			"message": "Failed to validate token",
+			"error":   err.Error(),
+		})
 		return
 	}
 
@@ -211,7 +229,9 @@ func (c *AuthController) Logout() {
 	// Get token from Authorization header
 	authHeader := c.Ctx.Input.Header("Authorization")
 	if authHeader == "" {
-		SendUnauthorized(&c.Controller, "Authorization header required")
+		SendUnauthorized(&c.Controller, map[string]interface{}{
+			"message": "Authorization header required",
+		})
 		return
 	}
 
@@ -220,20 +240,27 @@ func (c *AuthController) Logout() {
 	if len(authHeader) > 7 && authHeader[:7] == "Bearer " {
 		token = authHeader[7:]
 	} else {
-		SendUnauthorized(&c.Controller, "Invalid authorization header format")
+		SendUnauthorized(&c.Controller, map[string]interface{}{
+			"message": "Invalid authorization header format",
+		})
 		return
 	}
 
 	// Validate token
 	claims, err := utils.ValidateJWT(token)
 	if err != nil {
-		SendUnauthorized(&c.Controller, "Invalid or expired token")
+		SendUnauthorized(&c.Controller, map[string]interface{}{
+			"message": "Invalid or expired token",
+		})
 		return
 	}
 
 	// Invalidate user session
 	if err := utils.InvalidateUserSession(claims.UserID); err != nil {
-		SendInternalServerError(&c.Controller, "Failed to logout")
+		SendInternalError(&c.Controller, map[string]interface{}{
+			"message": "Failed to logout",
+			"error":   err.Error(),
+		})
 		return
 	}
 

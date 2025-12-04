@@ -49,49 +49,41 @@ func SendBadRequestWithMessage(c *beego.Controller, message string) {
 }
 
 // SendUnauthorized sends an error response with 401 Unauthorized
-func SendUnauthorized(c *beego.Controller, message string) {
+func SendUnauthorized(c *beego.Controller, errors map[string]interface{}) {
 	c.Ctx.ResponseWriter.WriteHeader(401)
 	c.Data["json"] = BaseResponse{
 		Status: 401,
-		Errors: map[string]interface{}{
-			"message": message,
-		},
+		Errors: errors,
 	}
 	c.ServeJSON()
 }
 
 // SendForbidden sends an error response with 403 Forbidden
-func SendForbidden(c *beego.Controller, message string) {
+func SendForbidden(c *beego.Controller, errors map[string]interface{}) {
 	c.Ctx.ResponseWriter.WriteHeader(403)
 	c.Data["json"] = BaseResponse{
 		Status: 403,
-		Errors: map[string]interface{}{
-			"message": message,
-		},
+		Errors: errors,
 	}
 	c.ServeJSON()
 }
 
 // SendNotFound sends an error response with 404 Not Found
-func SendNotFound(c *beego.Controller, message string) {
+func SendNotFound(c *beego.Controller, errors map[string]interface{}) {
 	c.Ctx.ResponseWriter.WriteHeader(404)
 	c.Data["json"] = BaseResponse{
 		Status: 404,
-		Errors: map[string]interface{}{
-			"message": message,
-		},
+		Errors: errors,
 	}
 	c.ServeJSON()
 }
 
 // SendConflict sends an error response with 409 Conflict
-func SendConflict(c *beego.Controller, message string) {
+func SendConflict(c *beego.Controller, errors map[string]interface{}) {
 	c.Ctx.ResponseWriter.WriteHeader(409)
 	c.Data["json"] = BaseResponse{
 		Status: 409,
-		Errors: map[string]interface{}{
-			"message": message,
-		},
+		Errors: errors,
 	}
 	c.ServeJSON()
 }
@@ -106,14 +98,12 @@ func SendValidationError(c *beego.Controller, errors map[string]interface{}) {
 	c.ServeJSON()
 }
 
-// SendInternalServerError sends an error response with 500 Internal Server Error
-func SendInternalServerError(c *beego.Controller, message string) {
+// SendInternalError sends an error response with 500 Internal Server Error
+func SendInternalError(c *beego.Controller, errors map[string]interface{}) {
 	c.Ctx.ResponseWriter.WriteHeader(500)
 	c.Data["json"] = BaseResponse{
 		Status: 500,
-		Errors: map[string]interface{}{
-			"message": message,
-		},
+		Errors: errors,
 	}
 	c.ServeJSON()
 }
