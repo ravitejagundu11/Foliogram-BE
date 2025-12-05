@@ -8,6 +8,9 @@ import (
 )
 
 func init() {
+	// Apply CORS middleware globally
+	beego.InsertFilter("*", beego.BeforeRouter, middlewares.CORSMiddleware)
+
 	beego.Router("/", &controllers.MainController{})
 	beego.Router("/health", &controllers.HealthController{})
 
