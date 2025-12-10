@@ -11,7 +11,9 @@ import (
 func AuthMiddleware(ctx *context.Context) {
 	// Skip authentication for public routes
 	path := ctx.Request.URL.Path
-	if path == "/api/foliogram/register" || path == "/api/foliogram/login" {
+	if path == "/api/foliogram/register" ||
+		path == "/api/foliogram/login" ||
+		strings.HasPrefix(path, "/api/foliogram/public/") {
 		return
 	}
 
