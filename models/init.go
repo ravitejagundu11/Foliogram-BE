@@ -37,6 +37,23 @@ func InitDB() error {
 
 	log.Println("Database connection established successfully")
 
+	// Auto-migrate models
+	err = DB.AutoMigrate(
+		&User{},
+		&Portfolio{},
+		&Template{},
+		&Project{},
+		&Skill{},
+		&Testimonial{},
+		&Education{},
+		&Experience{},
+		&Publication{},
+		&Contact{},
+	)
+	if err != nil {
+		log.Printf("Warning: Auto-migration failed: %v", err)
+	}
+
 	// Get underlying SQL database to configure connection pool
 	sqlDB, err := DB.DB()
 	if err != nil {

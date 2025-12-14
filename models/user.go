@@ -20,8 +20,8 @@ type User struct {
 	Location       string    `gorm:"type:varchar(255)" json:"-"`
 	ProfilePicture string    `gorm:"type:text" json:"profile_picture"`
 	Role           string    `gorm:"type:varchar(20);not null;default:'user'" json:"role"`
-	CreatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"-"`
-	UpdatedAt      time.Time `gorm:"not null;default:CURRENT_TIMESTAMP" json:"-"`
+	CreatedAt      time.Time `gorm:"type:datetime(3)" json:"-"`
+	UpdatedAt      time.Time `gorm:"type:datetime(3)" json:"-"`
 }
 
 // TableName specifies the table name for User model
